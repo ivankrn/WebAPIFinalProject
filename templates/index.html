@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<h1 class="text-center m-4">Баг - трекер</h1>
+			<div class="col-8">
+				<div class="card bg-light">
+					<form action="" id="nickname-form" class="mb-1 card-body" onsubmit="setNickname(event)">
+						<label for="nickname-input" class="form-label">Ваш ник:</label>
+						<input type="text" id="nickname-input" class="form-control mb-2">
+						<button class="btn btn-primary">Установить</button>
+					</form>
+					<form id="send-message-form" style="display: none;" class="mb-1 card-body" action="" onsubmit="sendMessage(event)">
+						<label for="message-text" class="form-label mb-2">Сообщение:</label>
+						<input class="form-control mb-2" type="text" id="message-text" autocomplete="off" class="form-control"/>
+						<div class="form-text mb-1">Ваш ник: <span id="ws-id"></span></div>
+						<button class="btn btn-primary">Отправить</button>
+					</form>
+				</div>
+
+			</div>
+			<div class="col-4">
+				<div class="card bg-light">
+					<div class="card-body">
+						<p class="fs-3 fw-bold">Сообщения:</p>
+						<ul id="message-list" class="list-group list-group-flush"></ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+
+	let clientNickname = undefined;
+	let ws;
+
+	function setNickname(event) {
+		event.preventDefault();
+		clientNickname = document.getElementById("nickname-input").value;
+		document.getElementById("nickname-form").style.display = "none";
+		document.getElementById("send-message-form").style.display = "";
+		document.querySelector("#ws-id").textContent = clientNickname;
+		ws = new WebSocket(`{{ws_protocol}}://{{server_urn}}/ws/${clientNickname}`);
+		ws.onmessage = (evt) => addMessage(evt.data);
+	}
+
+	function addMessage(messageText) {
+		const messages = document.getElementById("message-list");
+		const message = document.createElement("li");
+		message.classList.add("list-group-item");
+		message.classList.add("font-monospace");
+		const content = document.createTextNode(`${new Date().toLocaleString()}: ${messageText}`);
+		message.appendChild(content);
+		messages.appendChild(message);
+	}
+
+	function sendMessage(event) {
+		event.preventDefault();
+		const input = document.getElementById("message-text");
+		ws.send(input.value);
+		input.value = "";
+	}
+
+	</script>
+
+</body>
+</html>
